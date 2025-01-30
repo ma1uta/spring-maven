@@ -1,0 +1,13 @@
+= Документация
+
+Запрос:
+
+include::{snippets}/index/http-request.adoc[]
+
+Ответ:
+
+include::{snippets}/index/http-response.adoc[]
+
+Параметры:
+
+include::{snippets}/index/response-fields.adoc[]
