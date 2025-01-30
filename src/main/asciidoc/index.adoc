@@ -1,5 +1,7 @@
 = Документация
 
+== Hello world
+
 Запрос:
 
 include::{snippets}/index/http-request.adoc[]
@@ -11,3 +13,21 @@ include::{snippets}/index/http-response.adoc[]
 Параметры:
 
 include::{snippets}/index/response-fields.adoc[]
+
+== Сумма
+
+Запрос:
+
+include::{snippets}/sum/http-request.adoc[]
+
+Ответ:
+
+include::{snippets}/sum/http-response.adoc[]
+
+Параметры запроса:
+
+include::{snippets}/sum/request-fields.adoc[]
+
+Поля ответа:
+
+include::{snippets}/sum/response-fields.adoc[]
