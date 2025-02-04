@@ -1,6 +1,5 @@
 package io.github.ma1uta.demo.assembler;
 
-import io.github.ma1uta.demo.controller.AddressController;
 import io.github.ma1uta.demo.controller.EmployeeController;
 import io.github.ma1uta.demo.dto.EmployeeDto;
 import io.github.ma1uta.demo.mapper.EmployeeMapper;
@@ -25,8 +24,8 @@ public class EmployeeModelAssembler implements RepresentationModelAssembler<Empl
     public EntityModel<EmployeeDto> toModel(Employee entity) {
         return EntityModel.of(
             employeeMapper.toDto(entity),
-            linkTo(methodOn(EmployeeController.class).getEmployee(entity.getId())).withSelfRel(),
-            linkTo(methodOn(AddressController.class).getAddresses(entity.getId())).withRel("addresses")
+            linkTo(methodOn(EmployeeController.class).getEmployee(entity.getId())).withSelfRel().withType("core.employee"),
+            linkTo(methodOn(EmployeeController.class).getAddresses(entity.getId())).withRel("addresses").withType("core:address")
         );
     }
 }

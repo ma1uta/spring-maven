@@ -17,12 +17,12 @@ public class EmployeeService {
                 "surname1",
                 List.of(
                     new Address(
-                    1L,
-                    "street1",
-                    "city1",
-                    "state1",
-                    "zip1",
-                    "country1"
+                        1L,
+                        "street1",
+                        "city1",
+                        "state1",
+                        "zip1",
+                        "country1"
                     ),
                     new Address(
                         2L,
@@ -58,5 +58,14 @@ public class EmployeeService {
                 )
             )
         );
+    }
+
+    public Employee getEmployee(Long id) {
+        return getEmployees().stream().filter(employee -> employee.getId().equals(id)).findFirst().orElse(null);
+    }
+
+    public List<Address> getEmployeeAddresses(Long id) {
+        Employee employee = getEmployee(id);
+        return employee != null ? employee.getAddress() : null;
     }
 }

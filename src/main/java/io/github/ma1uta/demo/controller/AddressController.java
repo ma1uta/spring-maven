@@ -1,9 +1,9 @@
 package io.github.ma1uta.demo.controller;
 
+import io.github.ma1uta.demo.assembler.AddressModelAssembler;
 import io.github.ma1uta.demo.dto.AddressDto;
-import io.github.ma1uta.demo.mapper.AddressMapper;
 import io.github.ma1uta.demo.model.Address;
-import io.github.ma1uta.demo.service.EmployeeService;
+import io.github.ma1uta.demo.service.AddressService;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.http.ResponseEntity;
@@ -12,57 +12,29 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.stream.Collectors;
-
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
-
 @RestController
-@RequestMapping("/api/employee/{id}/address")
+@RequestMapping("/api/address")
 public class AddressController {
 
-    private final EmployeeService employeeService;
-    private final AddressMapper addressMapper;
+    private final AddressService addressService;
+    private final AddressModelAssembler addressModelAssembler;
 
     public AddressController(
-        EmployeeService employeeService,
-        AddressMapper addressMapper
+        AddressService addressService,
+        AddressModelAssembler addressModelAssembler
     ) {
-        this.employeeService = employeeService;
-        this.addressMapper = addressMapper;
+        this.addressService = addressService;
+        this.addressModelAssembler = addressModelAssembler;
     }
 
     @GetMapping
-    public ResponseEntity<CollectionModel<EntityModel<AddressDto>>> getAddresses(@PathVariable("id") Long id) {
-        return employeeService.getEmployees()
-            .stream()
-            .filter(x -> x.getId().equals(id))
-            .findFirst()
-            .map(value -> ResponseEntity.ok(
-                CollectionModel.of(
-                    value.getAddress().stream().map(x -> wrap(value.getId(), x)).collect(Collectors.toList()),
-                    linkTo(methodOn(AddressController.class).getAddresses(id)).withSelfRel()
-                )
-            ))
-            .orElseGet(() -> ResponseEntity.notFound().build());
+    public ResponseEntity<CollectionModel<EntityModel<AddressDto>>> getAddresses() {
+        return ResponseEntity.ok(addressModelAssembler.toCollectionModel(addressService.getAddresses()));
     }
 
     @GetMapping("/{addressId}")
-    public ResponseEntity<EntityModel<AddressDto>> getAddress(@PathVariable("id") Long id, @PathVariable("addressId") Long addressId) {
-        return employeeService.getEmployees()
-            .stream()
-            .filter(x -> x.getId().equals(id))
-            .flatMap(x -> x.getAddress().stream())
-            .filter(x -> x.getId().equals(addressId))
-            .findFirst()
-            .map(value -> ResponseEntity.ok(wrap(id, value)))
-            .orElseGet(() -> ResponseEntity.notFound().build());
-    }
-
-    private EntityModel<AddressDto> wrap(Long employeeId, Address address) {
-        return EntityModel.of(
-            addressMapper.toDto(address),
-            linkTo(methodOn(AddressController.class, employeeId).getAddress(employeeId, address.getId())).withSelfRel()
-        );
+    public ResponseEntity<EntityModel<AddressDto>> getAddress(@PathVariable("addressId") Long addressId) {
+        Address address = addressService.getAddress(addressId);
+        return address != null ? ResponseEntity.ok(addressModelAssembler.toModel(address)) : ResponseEntity.notFound().build();
     }
 }
