@@ -5,7 +5,7 @@ import io.github.ma1uta.demo.dto.AddressDto;
 import io.github.ma1uta.demo.model.Address;
 import io.github.ma1uta.demo.service.AddressService;
 import org.springframework.hateoas.CollectionModel;
-import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.server.ExposesResourceFor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/address")
+@ExposesResourceFor(Address.class)
 public class AddressController {
 
     private final AddressService addressService;
@@ -28,12 +29,12 @@ public class AddressController {
     }
 
     @GetMapping
-    public ResponseEntity<CollectionModel<EntityModel<AddressDto>>> getAddresses() {
+    public ResponseEntity<CollectionModel<AddressDto>> getAddresses() {
         return ResponseEntity.ok(addressModelAssembler.toCollectionModel(addressService.getAddresses()));
     }
 
     @GetMapping("/{addressId}")
-    public ResponseEntity<EntityModel<AddressDto>> getAddress(@PathVariable("addressId") Long addressId) {
+    public ResponseEntity<AddressDto> getAddress(@PathVariable("addressId") Long addressId) {
         Address address = addressService.getAddress(addressId);
         return address != null ? ResponseEntity.ok(addressModelAssembler.toModel(address)) : ResponseEntity.notFound().build();
     }

@@ -8,7 +8,7 @@ import io.github.ma1uta.demo.model.Address;
 import io.github.ma1uta.demo.model.Employee;
 import io.github.ma1uta.demo.service.EmployeeService;
 import org.springframework.hateoas.CollectionModel;
-import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,10 +16,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.stream.Collectors;
-
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
 @RequestMapping("/api/employee")
@@ -40,27 +36,21 @@ public class EmployeeController {
     }
 
     @GetMapping
-    public ResponseEntity<CollectionModel<EntityModel<EmployeeDto>>> getEmployees() {
-        return ResponseEntity.ok(CollectionModel.of(
-            employeeService.getEmployees().stream().map(employeeModelAssembler::toModel).collect(Collectors.toList()),
-            linkTo(methodOn(EmployeeController.class).getEmployees()).withSelfRel()
-        ));
+    public ResponseEntity<CollectionModel<EmployeeDto>> getEmployees() {
+        return ResponseEntity.ok(PagedModel.of(employeeModelAssembler.toCollectionModel(employeeService.getEmployees())));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<EntityModel<EmployeeDto>> getEmployee(@PathVariable("id") Long id) {
+    public ResponseEntity<EmployeeDto> getEmployee(@PathVariable("id") Long id) {
         Employee employee = employeeService.getEmployee(id);
         return employee != null ? ResponseEntity.ok(employeeModelAssembler.toModel(employee)) : ResponseEntity.notFound().build();
     }
 
     @GetMapping("/{id}/address")
-    public ResponseEntity<CollectionModel<EntityModel<AddressDto>>> getAddresses(@PathVariable("id") Long id) {
+    public ResponseEntity<CollectionModel<AddressDto>> getAddresses(@PathVariable("id") Long id) {
         List<Address> employeeAddresses = employeeService.getEmployeeAddresses(id);
-        return employeeAddresses != null ? ResponseEntity.ok(
-            CollectionModel.of(
-                employeeAddresses.stream().map(addressModelAssembler::toModel).collect(Collectors.toList()),
-                linkTo(methodOn(EmployeeController.class).getAddresses(id)).withSelfRel()
-            )
-        ) : ResponseEntity.notFound().build();
+        return employeeAddresses != null
+            ? ResponseEntity.ok(addressModelAssembler.toCollectionModel(employeeAddresses))
+            : ResponseEntity.notFound().build();
     }
 }

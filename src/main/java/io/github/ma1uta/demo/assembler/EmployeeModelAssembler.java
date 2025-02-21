@@ -1,31 +1,45 @@
 package io.github.ma1uta.demo.assembler;
 
 import io.github.ma1uta.demo.controller.EmployeeController;
+import io.github.ma1uta.demo.dto.AddressDto;
 import io.github.ma1uta.demo.dto.EmployeeDto;
 import io.github.ma1uta.demo.mapper.EmployeeMapper;
+import io.github.ma1uta.demo.model.Address;
 import io.github.ma1uta.demo.model.Employee;
-import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.server.RepresentationModelAssembler;
+import org.springframework.hateoas.server.RepresentationModelProcessor;
+import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
 import org.springframework.stereotype.Component;
 
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+import java.util.stream.Collectors;
 
 @Component
-public class EmployeeModelAssembler implements RepresentationModelAssembler<Employee, EntityModel<EmployeeDto>> {
+public class EmployeeModelAssembler extends RepresentationModelAssemblerSupport<Employee, EmployeeDto> {
 
     private final EmployeeMapper employeeMapper;
+    private final RepresentationModelAssembler<Address, AddressDto> addressModelAssembler;
+    private final RepresentationModelProcessor<AddressDto> addressModelProcessor;
 
-    public EmployeeModelAssembler(EmployeeMapper employeeMapper) {
+    public EmployeeModelAssembler(
+        EmployeeMapper employeeMapper,
+        RepresentationModelAssembler<Address, AddressDto> addressModelAssembler,
+        RepresentationModelProcessor<AddressDto> addressModelProcessor
+    ) {
+        super(EmployeeController.class, EmployeeDto.class);
         this.employeeMapper = employeeMapper;
+        this.addressModelAssembler = addressModelAssembler;
+        this.addressModelProcessor = addressModelProcessor;
     }
 
     @Override
-    public EntityModel<EmployeeDto> toModel(Employee entity) {
-        return EntityModel.of(
-            employeeMapper.toDto(entity),
-            linkTo(methodOn(EmployeeController.class).getEmployee(entity.getId())).withSelfRel().withType("core.employee"),
-            linkTo(methodOn(EmployeeController.class).getAddresses(entity.getId())).withRel("addresses").withType("core:address")
-        );
+    public EmployeeDto toModel(Employee entity) {
+        EmployeeDto dto = employeeMapper.toDto(entity);
+        dto.setAddresses(
+            entity.getAddress()
+                .stream()
+                .map(addressModelAssembler::toModel)
+                .map(addressModelProcessor::process)
+                .collect(Collectors.toList()));
+        return dto;
     }
 }
